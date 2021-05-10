@@ -52,7 +52,7 @@ const getTranslation = (string, context, translationsObject) => {
   // If no translation is found return original string
   // (the string that need to be translated)
   if (!translationKey) {
-    return {string, notFound: true};
+    return { string, notFound: true };
   }
 
   const translationValues = translationsObject[translationKey];
@@ -64,7 +64,7 @@ const getTranslation = (string, context, translationsObject) => {
     // Check for context
     if (context !== constants.DEFAULT_TRANSLATION_CONTEXT) {
       // Sorry, we can't assume context, return original string
-      return {string};
+      return { string, notFound: true };
     } else {
       // If the context is default
       // translationValues IS the translation template
@@ -81,7 +81,7 @@ const getTranslation = (string, context, translationsObject) => {
     } else {
       // Couldn't find the specified context, we can't asume it
       // Return original string
-      return {string};
+      return { string, notFound: true };
     }
   }
 
@@ -102,7 +102,7 @@ const getTranslation = (string, context, translationsObject) => {
     );
   });
 
-  return {string: translation};
+  return { string: translation };
 };
 
 module.exports = getTranslation;
