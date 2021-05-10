@@ -25,6 +25,8 @@ module.exports = function ({ types }) {
       this.translationsOutputObject = translationsOutputObject;
     },
     post() {
+      const { missingText = constants.DEFAULT_MISSING_TEXT } = this.opts;
+
       if (this.outputTranslation.length > 0) {
         let newData = { ...this.translationsOutputObject };
 
@@ -32,7 +34,7 @@ module.exports = function ({ types }) {
           const formattedKey = key.string.split("${").join("{");
           const stringProp = formattedKey;
           const stringValue = key.notFound
-            ? "[MISSING_TRANSLATION] " + formattedKey
+            ? missingText + formattedKey
             : formattedKey;
 
           console.log(stringProp, key.context, stringValue);
