@@ -37,7 +37,7 @@ module.exports = function ({ types }) {
             ? missingText + formattedKey
             : formattedKey;
 
-          console.log(stringProp, key.context, stringValue);
+          // console.log(stringProp, key.context, stringValue);
 
           const newValues = newData[stringProp]
             ? {
