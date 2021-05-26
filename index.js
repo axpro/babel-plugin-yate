@@ -1,9 +1,72 @@
+const fs = require("fs");
+const _ = require("lodash");
 const getTranslation = require("./getTranslation");
 const getTranslationsObject = require("./getTranslationsObject");
 const constants = require("./constants");
 
 module.exports = function ({ types }) {
   return {
+    pre() {
+      const {
+        translationsInput = constants.DEFAULT_TRANSLATIONS_INPUT,
+        translationsOutput = constants.DEFAULT_TRANSLATIONS_OUTPUT,
+      } = this.opts;
+
+      const translationsInputObject = getTranslationsObject(translationsInput);
+      const translationsOutputObject =
+        getTranslationsObject(translationsOutput);
+
+      this.outputTranslation = [];
+
+      this.translationsInput = translationsInput;
+      this.translationsInputObject = translationsInputObject;
+
+      this.translationsOutput = translationsOutput;
+      this.translationsOutputObject = translationsOutputObject;
+    },
+    post() {
+      const { missingText = constants.DEFAULT_MISSING_TEXT } = this.opts;
+
+      if (this.outputTranslation.length > 0) {
+        let newData = { ...this.translationsOutputObject };
+
+        this.outputTranslation.forEach((key) => {
+          const formattedKey = key.string.split("${").join("{");
+          const stringProp = formattedKey;
+          const stringValue = key.notFound
+            ? missingText + formattedKey
+            : formattedKey;
+
+          // console.log(stringProp, key.context, stringValue);
+
+          const newValues = newData[stringProp]
+            ? {
+                ...newData[stringProp],
+                ...{ [key.context]: stringValue },
+              }
+            : {
+                [key.context]: stringValue,
+              };
+
+          const sortedNewValues = _(newValues)
+            .toPairs()
+            .sortBy(0)
+            .fromPairs()
+            .value();
+
+          newData[stringProp] = sortedNewValues;
+        });
+
+        const sortedNewData = _(newData)
+          .toPairs()
+          .sortBy(0)
+          .fromPairs()
+          .value();
+
+        const outputString = JSON.stringify(sortedNewData, null, 2);
+        fs.writeFileSync(this.translationsOutput, outputString);
+      }
+    },
     visitor: {
       TaggedTemplateExpression(path, state) {
         const {
@@ -11,10 +74,7 @@ module.exports = function ({ types }) {
         } = path;
         const { file, opts: options } = state;
 
-        const {
-          tagName = constants.DEFAULT_TAGNAME,
-          translationsFile = constants.DEFAULT_TRANSLATIONS_FILE,
-        } = options;
+        const { tagName = constants.DEFAULT_TAGNAME } = options;
 
         const isTag = types.isIdentifier(tag, { name: tagName });
         const isCallExpression = types.isCallExpression(tag);
@@ -76,9 +136,6 @@ module.exports = function ({ types }) {
           }
         }
 
-        // Get translations object
-        const translationsObject = getTranslationsObject(translationsFile);
-
         // Get translated template literal
         let templateLiteralTranslation;
 
@@ -86,11 +143,17 @@ module.exports = function ({ types }) {
         templateLiteralTranslation = getTranslation(
           templateLiteral,
           context,
-          translationsObject
+          this.translationsInputObject
         );
 
         // Compose source code replacement
-        const sourceString = "`" + templateLiteralTranslation + "`";
+        const sourceString = "`" + templateLiteralTranslation.string + "`";
+
+        this.outputTranslation.push({
+          string: templateLiteral,
+          context,
+          notFound: templateLiteralTranslation.notFound,
+        });
 
         // Replace with translation in source code
         path.replaceWithSourceString(sourceString);

@@ -1,4 +1,4 @@
-const { differenceWith, isEqual, isPlainObject, isEmpty } = require("lodash");
+const { differenceWith, isEqual, isPlainObject } = require("lodash");
 const getTranslationParameters = require("./getTranslationParameters");
 
 const isValidTranslationsObject = (translationsObject) => {
@@ -6,9 +6,9 @@ const isValidTranslationsObject = (translationsObject) => {
     throw new TypeError("translationsObject must be an object.");
   }
 
-  if (isEmpty(translationsObject)) {
-    throw new TypeError("translationsObject must not be an empty object.");
-  }
+  // if (isEmpty(translationsObject)) {
+  //   throw new TypeError("translationsObject must not be an empty object.");
+  // }
 
   // Let's start validation by looping over translationObject entries
   for (let [translationKey, translationValue] of Object.entries(
@@ -20,9 +20,8 @@ const isValidTranslationsObject = (translationsObject) => {
     // Check if the translation is a simple string
     if (typeof translationValue === "string") {
       // Get translation parameters for translation
-      const translationValueParameters = getTranslationParameters(
-        translationValue
-      );
+      const translationValueParameters =
+        getTranslationParameters(translationValue);
 
       // Check if we have all parameters
       // from the string that needs translated in translation string
@@ -42,17 +41,16 @@ const isValidTranslationsObject = (translationsObject) => {
     // Check if the translation is using context
     if (isPlainObject(translationValue)) {
       // Check if the translation contains default context in keys
-      if (!Object.keys(translationValue).includes("default")) {
-        // Not a valid translation
-        // Return early, no need to continue
-        return false;
-      }
+      // if (!Object.keys(translationValue).includes("default")) {
+      //   // Not a valid translation
+      //   // Return early, no need to continue
+      //   return false;
+      // }
 
       // Loop over translation contexts
       for (let translationContext of Object.values(translationValue)) {
-        const translationValueParameters = getTranslationParameters(
-          translationContext
-        );
+        const translationValueParameters =
+          getTranslationParameters(translationContext);
 
         // Check if we have all parameters
         // from the string that needs translated in translation string
