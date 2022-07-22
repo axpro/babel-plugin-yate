@@ -18,13 +18,13 @@ const getTranslationsObject = (file) => {
     let rawdata = fs.readFileSync(translationsFilePath);
     translationsObject = JSON.parse(rawdata);
   } catch (error) {
-    throw new Error(
-      `Can't find translation file. Provided path: ${translationsFilePath}`
-    );
+    // if can't find file or invalid return empty object
+    return ({});
   }
 
   if (!isValidTranslationsObject(translationsObject)) {
-    throw new Error("Translation file is invalid.");
+    // if can't find file or invalid return empty object
+    return ({});
   }
 
   return translationsObject;
